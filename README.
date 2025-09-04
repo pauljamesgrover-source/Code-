@@ -1,0 +1,121 @@
+import os
+import subprocess
+import time
+
+def run_git_command(command, path, success_message, error_message):
+    """
+    Runs a git command in a specified directory and handles errors.
+    """
+    try:
+        subprocess.run(
+            command,
+            cwd=path,
+            check=True,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(f"\n✅ {success_message}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"\n❌ Error: {error_message}")
+        print(f"Details: {e.stderr.strip()}")
+        return False
+
+def create_new_project(repo_path, project_name):
+    """
+    Creates a new project directory and a main file within it,
+    including copyright and trademark information.
+    """
+    # Create a new project directory
+    project_path = os.path.join(repo_path, project_name)
+    if not os.path.exists(project_path):
+        os.makedirs(project_path)
+        print(f"\n📁 Created new project directory: {project_name}")
+    else:
+        print(f"\n⚠️ Directory '{project_name}' already exists. Skipping creation.")
+
+    # Create a sample code file with a header
+    file_path = os.path.join(project_path, f"{project_name.lower().replace('-', '_')}.py")
+    
+    # The template for the new code file
+    code_template = f"""# {project_name} | PaulJamesGrover-Source™
+
+# (c) 2025 Paul James Grover. All Rights Reserved.
+# Trademark: Grovatron™ | PaulJamesGrover-Source™
+# Copyright: © 2025 Paul James Grover, Grovatron™
+#
+# This is a sample code file demonstrating the project '{project_name}'.
+#
+# MISSION: To advance humanity’s understanding and technology across the cosmos.
+
+# -----------------------------------------------------------------------------
+# CODE STARTS HERE
+# -----------------------------------------------------------------------------
+
+def grovatron_function():
+    # Example function
+    print("Welcome to the Grovatron™ project!")
+    print("This function demonstrates a concept for universal discovery.")
+
+if __name__ == "__main__":
+    grovatron_function()
+"""
+    
+    with open(file_path, 'w') as f:
+        f.write(code_template)
+    
+    print(f"📝 Created and added code to '{file_path}' with your trademark.")
+
+def main():
+    """
+    Main function to guide the user through the process.
+    """
+    print("--- Grovatron™ GitHub Update Tool ---")
+    print("This tool helps you manage and update your GitHub repository.")
+
+    # Get repository path from user
+    repo_path = input("Enter the local path to your GitHub repository (e.g., /path/to/my/repo): ")
+    if not os.path.isdir(repo_path) or not os.path.exists(os.path.join(repo_path, ".git")):
+        print(f"\n❌ Error: The path '{repo_path}' is not a valid Git repository.")
+        print("Please ensure you have a local copy of your repository on your computer.")
+        return
+        
+    print("\nStarting repository update process...")
+    
+    # Ask for a new project name
+    project_name = input("Enter the name for your new project (e.g., Astro-GPS): ")
+    if not project_name:
+        print("\nOperation cancelled. No project name provided.")
+        return
+
+    # Create the new project structure
+    create_new_project(repo_path, project_name)
+
+    # Ask for a commit message
+    commit_message = input("\nEnter a commit message for these changes: ")
+    if not commit_message:
+        print("\nOperation cancelled. No commit message provided.")
+        return
+
+    # Git operations
+    if not run_git_command("git add .", repo_path, "Staged all new and modified files.", "Failed to stage files."):
+        return
+    
+    if not run_git_command(f'git commit -m "{commit_message}"', repo_path, "Committed changes to your local repository.", "Failed to commit changes."):
+        return
+
+    # Push to GitHub
+    push_confirm = input("\nDo you want to push these changes to GitHub now? (yes/no): ").lower()
+    if push_confirm == 'yes':
+        run_git_command("git push", repo_path, "Changes pushed successfully to GitHub!", "Failed to push changes to GitHub. Please check your network connection and credentials.")
+    else:
+        print("\nPush aborted. Your changes are saved locally. You can push them later using 'git push'.")
+
+    print("\n--- Process complete. ---")
+    print(f"You can now find your new project in the '{project_name}' folder in your local repository.")
+    
+if __name__ == "__main__":
+    main()
+    
